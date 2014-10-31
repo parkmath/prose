@@ -17,6 +17,7 @@ var watch = require('gulp-watch');
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var nodeJS = process.execPath;
+var sourcemaps = require('gulp-sourcemaps');
 
 // Scripts paths.
 var paths = {
@@ -32,6 +33,9 @@ var paths = {
     'vendor/codemirror/javascript.js',
     'vendor/codemirror/css.js',
     'vendor/codemirror/gfm.js',
+    'vendor/codemirror/xml-fold.js',
+    'vendor/codemirror/matchbrackets.js',
+    'vendor/codemirror/matchtags.js',
     'vendor/liquid.js'
   ],
   app: [
@@ -132,7 +136,9 @@ gulp.task('scripts', ['templates', 'oauth'], function() {
 
   // Concatenate vendor scripts.
   gulp.src(paths.vendorScripts)
+    .pipe(sourcemaps.init())
     .pipe(concat('vendor.js'))
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest('dist/'));
 
   // Browserify app scripts.
@@ -146,7 +152,9 @@ gulp.task('scripts', ['templates', 'oauth'], function() {
 
       // Concatenate `vendor` and `app` scripts into `prose.js`.
       return gulp.src(['dist/vendor.js', 'dist/app.js'])
+        .pipe(sourcemaps.init())
         .pipe(concat('prose.js'))
+        .pipe(sourcemaps.write())
         .pipe(gulp.dest('dist/'));
     });
 

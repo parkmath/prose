@@ -2293,6 +2293,7 @@ ins {
 .cm-s-prose-bright span.cm-builtin    { color:#197987; }
 .cm-s-prose-bright span.cm-link       { color:#197987; text-decoration:underline;}
 .cm-s-prose-bright span.cm-tag        { color:#197987; }
+.cm-s-prose-bright span.cm-tag.cm-bracket { color:#197987; }
 
 /* Medium Blue/Green */
 .cm-s-prose-bright span.cm-string     { color:#48abb9; }
@@ -2321,6 +2322,13 @@ ins {
 
 .cm-s-prose-bright span.cm-em         { font-style:italic; }
 .cm-s-prose-bright span.cm-strong     { font-weight:bold; }
+
+/* bracket and tag matching */
+.cm-s-prose-bright span.CodeMirror-matchingbracket {color: #0f0;}
+.cm-s-prose-bright span.CodeMirror-nonmatchingbracket {color: #f22;}
+.cm-s-prose-bright .CodeMirror-matchingtag { background: rgba(150, 255, 0, .3); }
+.cm-s-prose-bright .CodeMirror-activeline-background {  } 
+
 
 /* STOP */
 /* The rest of this file contains styles related to the mechanics of
@@ -2462,6 +2470,53 @@ ins {
     visibility: hidden;
   }
 }
+
+
+/* ------------------------------------------
+  Parkmath-specific live preview.
+---------------------------------------------*/
+
+.live-preview {
+  display: none;
+  
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+  width: 30%;
+  height: 100vh;
+  line-height: 100vh;
+  padding-right: 60px;
+}
+
+.live-preview > * {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+  border-left: 5px solid rgba(200, 150, 255, .3);
+  padding-left: 5px;
+}
+
+.live-preview .problem {
+  counter-reset: part;
+  /* problem numbers and problem parts */
+  position: relative; }
+  .live-preview .problem .problem-part {
+    counter-increment: part; }
+    .live-preview .problem .problem-part:before {
+      content: counter(part,lower-alpha); }
+      
+
+.live-preview-source {
+  background: rgba(200, 150, 255, .1);
+  border-color: rgba(200, 150, 255, .1);
+  border-style: solid;
+  border-width: 1.5px 0 1.5px 0;
+}
+
+
 
 /* ------------------------------------------
   Media Queries

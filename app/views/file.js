@@ -265,6 +265,57 @@ module.exports = Backbone.View.extend({
       }
     }
   },
+  
+  /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      Parkmath-specific Preview Code.
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+  **/
+  livePreview: function(e) {
+    this.livePreviewElement = this.livePreviewElement || $('.live-preview');
+    if(this.livePreviewElement.length === 0) {
+      console.warn("No live-preview element found.");
+      return;
+    }
+
+    var current = this.livePreviewRange ? this.livePreviewRange.find() : null;
+    var pos = this.editor.getCursor();
+    if(current && pos.line >= current.from.line && pos.line <= current.to.line)
+    {
+      // cursor's in the current preview.
+    } else {
+      if(current) { this.livePreviewRange.clear(); }
+    
+      var enclosing = null, nextup = null;
+      while(enclosing === null || !_.isEqual(pos, enclosing.open.start)) {
+        var nextup = CodeMirror.findEnclosingTag(this.editor, pos);
+        if(!nextup) break;
+        else if(!nextup.open) { console.log(nextup); }
+        else if(nextup.open.tag === 'section') break;
+        else {
+          pos = nextup.open.from;
+          enclosing = nextup;
+        }
+      }
+      if(!enclosing) {
+        this.livePreviewElement.hide();
+        return;
+      };
+
+      current = { from: enclosing.open.from, to: enclosing.close.to };
+      this.livePreviewRange = this.editor.markText(current.from, current.to, {
+        className: 'live-preview-source',
+      });
+    }
+    
+    var previewContent = this.editor.getRange(current.from, current.to);
+    if(util.trim(previewContent) === '') {
+      this.livePreviewElement.hide();
+    };
+    
+    this.livePreviewElement.show();
+    this.livePreviewElement.html(previewContent);
+    window.MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.livePreviewElement[0]]);
+  },
 
   compilePreview: function(content) {
     // Scan the content search for ![]()
@@ -315,11 +366,13 @@ module.exports = Backbone.View.extend({
       mode: lang,
       value: this.model.get('content') || '',
       lineWrapping: true,
-      lineNumbers: (lang === 'gfm' || lang === null) ? false : true,
-      extraKeys: this.keyMap(),
+      lineNumbers: false, /* setting always false for parkmath */
       matchBrackets: true,
+      matchTags: true,
+      extraKeys: this.keyMap(),
       dragDrop: false,
-      theme: 'prose-bright'
+      theme: 'prose-bright',
+      styleActiveLine: true,
     });
 
     // Bind Drag and Drop work on the editor
@@ -342,6 +395,9 @@ module.exports = Backbone.View.extend({
     // an active class to any snippet links
     if (lang === 'gfm') {
       this.listenTo(this.editor, 'cursorActivity', this.cursor);
+    }
+    else if (lang === 'htmlmixed') {
+      this.listenTo(this.editor, 'cursorActivity', this.livePreview);
     }
 
     this.listenTo(this.editor, 'change', this.makeDirty, this);

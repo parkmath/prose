@@ -31,6 +31,7 @@
     "gulp-rename": "^1.2.0",
     "gulp-rimraf": "^0.1.0",
     "gulp-shell": "^0.2.7",
+    "gulp-sourcemaps": "^1.2.7",
     "gulp-uglify": "^0.3.1",
     "gulp-watch": "^0.6.8",
     "mocha": "~1.9.0",
