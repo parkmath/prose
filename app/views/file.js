@@ -288,9 +288,10 @@ module.exports = Backbone.View.extend({
       var enclosing = null, nextup = null;
       while(enclosing === null || !_.isEqual(pos, enclosing.open.start)) {
         var nextup = CodeMirror.findEnclosingTag(this.editor, pos);
+        console.log(nextup);
         if(!nextup) break;
         else if(!nextup.open) { console.log(nextup); }
-        else if(nextup.open.tag === 'section') break;
+        else if(nextup.open.tag === 'section' || nextup.open.tag === 'article') break;
         else {
           pos = nextup.open.from;
           enclosing = nextup;
