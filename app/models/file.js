@@ -81,7 +81,9 @@ module.exports = Backbone.Model.extend({
 
   parseContent: function(resp, options) {
     // Extract YAML from a post, trims whitespace
-    resp = resp.replace(/\r\n/g, '\n'); // normalize a little bit
+    resp = resp
+      .replace(/\r\n/g, '\n') // normalize a little bit
+      .replace(/\s*$/, '\n'); // trim (or append) so that EOF has exactly one \n
 
     var hasMetadata = !!util.hasMetadata(resp);
 
@@ -117,7 +119,7 @@ module.exports = Backbone.Model.extend({
       }
 
       return '';
-    }).trim();
+    });
 
     return res;
   },
@@ -273,7 +275,7 @@ module.exports = Backbone.Model.extend({
             repo.branches.fetch({
               cache: false,
               success: (function(collection, res, options) {
-                branch = collection.findWhere({ name: branch });
+                var branch = collection.findWhere({ name: branch });
 
                 // Create new File model in forked repo
                 // TODO: serialize metadata, set raw content
@@ -355,7 +357,7 @@ module.exports = Backbone.Model.extend({
   },
 
   url: function() {
-    branch = this.collection.branch || this.branch || this.get("branch");
+    var branch = this.collection.branch || this.branch || this.get("branch");
     return this.collection.repo.url() + '/contents/' + this.get('path') + '?ref=' + branch.get('name');
   },
 

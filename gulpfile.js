@@ -14,7 +14,6 @@ var browserify = require('browserify');
 var rename = require('gulp-rename');
 var rimraf = require('gulp-rimraf');
 var watch = require('gulp-watch');
-var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var nodeJS = process.execPath;
 var sourcemaps = require('gulp-sourcemaps');
@@ -40,6 +39,14 @@ var paths = {
   ],
   app: [
     'app/**/**/*.js'
+  ],
+  test: [
+  'test/**/*.{js, json}',
+  '!test/lib/index.js', // built test file
+  '!test/lib/polyfill.js' // built test file.
+  ],
+  templates: [
+    'templates/**/*.html'
   ]
 };
 
@@ -97,53 +104,52 @@ gulp.task('oauth', function () {
     .pipe(
       shell([
         'mkdir -p dist',
-        // 'curl "https://raw.githubusercontent.com/prose/prose/gh-pages/oauth.json" > oauth.json'
+        '[ -f oauth.json ] && echo "Using existing oauth.json." || curl "https://raw.githubusercontent.com/prose/prose/gh-pages/oauth.json" > oauth.json'
       ])
     );
 });
 
 
+
+// Concatenate vendor scripts into dist/vendor.js
+gulp.task('vendor', function() {
+  gulp.src(paths.vendorScripts)
+  .pipe(concat('vendor.js'))
+  .pipe(gulp.dest('dist/'));
+})
+
+
 // Build tests.
-gulp.task('tests', function() {
-
-  // Browserify index.js
-  browserify('./test/index.js')
-
-    // Pass `debug` option to enable source maps.
-    .bundle({debug: true})
-
-    // Output file.
-    .pipe(source('index.js'))
-
-    // Output folder.
-    .pipe(gulp.dest('./test/lib/'));
-
+gulp.task('build-tests', ['templates', 'oauth', 'vendor'], function() {
 
   // Browserify polyfill-require.js
-  browserify('./test/lib/polyfill-require.js')
-
-    // Pass `debug` option to enable source maps.
-    .bundle({debug: true})
+  // Pass `debug` option to enable source maps.
+  browserify({debug:true})
+    .add('./test/lib/polyfill-require.js')
+    .require('./test/lib/sourcemap-hack', {expose: 'sourcemap-hack'})
+    .bundle()
     .pipe(source('polyfill.js'))
     .pipe(gulp.dest('./test/lib/'));
+    
+  // Browserify index.js
+  // Pass `debug` option to enable source maps.
+  return browserify({debug: true})
+    .add('./test/index.js')
+    .external(['chai', 'mocha'])
+    .bundle()
+    .pipe(source('index.js')) // Output file.
+    .pipe(gulp.dest('./test/lib/')); // Output folder.
 
 });
 
 
-// Concatenate vendor scripts, browserify app scripts and
-// merge them both into `prose.js`.
-gulp.task('scripts', ['templates', 'oauth'], function() {
-
-  // Concatenate vendor scripts.
-  gulp.src(paths.vendorScripts)
-    .pipe(sourcemaps.init())
-    .pipe(concat('vendor.js'))
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dist/'));
+// Browserify app scripts, then concatenate with vendor scripts into `prose.js`.
+gulp.task('build-app', ['templates', 'oauth', 'vendor'], function() {
 
   // Browserify app scripts.
-  return browserify('./app/boot.js')
-    .bundle({debug: true})
+  return browserify({debug: true})
+    .add('./app/boot.js')
+    .bundle()
     .pipe(source('app.js'))
     .pipe(gulp.dest('./dist/'))
 
@@ -162,7 +168,7 @@ gulp.task('scripts', ['templates', 'oauth'], function() {
 
 
 // Compress `prose.js`.
-gulp.task('uglify', ['scripts'], function() {
+gulp.task('uglify', ['build-app'], function() {
 
   return gulp.src('dist/prose.js')
     .pipe(rename('prose.min.js'))
@@ -176,32 +182,24 @@ gulp.task('uglify', ['scripts'], function() {
 //
 //    $ gulp watch
 //
-gulp.task('watch', ['templates'], function() {
-
+gulp.task('watch', ['build-app', 'build-tests'], function() {
   // Watch any `.js` file under `app` folder.
-  return gulp.src(paths.app)
-    .pipe(watch(function() {
+  gulp.watch(paths.app, ['build-app']);
+  gulp.watch(paths.test, ['build-tests']);
+  gulp.watch(paths.templates, ['build-app']);
+});
 
-      // Browserify `boot.js`
-      return browserify('./app/boot.js')
-        .bundle({debug: true})
-        .pipe(source('app.js'))
-        .pipe(gulp.dest('./dist/'))
 
-        // Concatenate scripts one browserify finishes.
-        .on('end', function() {
+gulp.task('run-tests', ['build-tests'], shell.task([
+  './node_modules/.bin/mocha-phantomjs test/index.html'
+], {ignoreErrors: true}));
 
-          // Concatenate `vendor` and `app` scripts into `prose.js`.
-          return gulp.src(['dist/vendor.js', 'dist/app.js'])
-            .pipe(concat('prose.js'))
-            .pipe(gulp.dest('dist/'));
-        });
-
-    }));
-
+// Like watch, but actually run the tests whenever anything changes.
+gulp.task('test', ['run-tests'], function() {
+  gulp.watch([paths.app, paths.test, paths.templates], ['run-tests'])
 });
 
 
 // Default task which builds the project when we
 // run `gulp` from the command line.
-gulp.task('default', ['tests', 'scripts', 'uglify']);
+gulp.task('default', ['build-tests', 'build-app', 'uglify']);

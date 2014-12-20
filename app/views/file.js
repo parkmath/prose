@@ -5,7 +5,6 @@ var jsyaml = require('js-yaml');
 var patch = require('../../vendor/liquid.patch');
 
 var ModalView = require('./modal');
-var key = require('keymaster');
 var marked = require('marked');
 var diff = require('diff');
 var Backbone = require('backbone');
@@ -362,10 +361,11 @@ module.exports = Backbone.View.extend({
   initEditor: function() {
     var lang = this.model.get('lang');
 
+    var code = this.$el.find('#code')[0];
+    code.value = this.model.get('content') || '';
     // TODO: set default content for CodeMirror
-    this.editor = CodeMirror(this.$el.find('#code')[0], {
+    this.editor = CodeMirror.fromTextArea(code, {
       mode: lang,
-      value: this.model.get('content') || '',
       lineWrapping: true,
       lineNumbers: false, /* setting always false for parkmath */
       matchBrackets: true,
