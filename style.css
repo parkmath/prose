@@ -2473,8 +2473,19 @@ ins {
 
 
 /* ------------------------------------------
-  Parkmath-specific live preview.
+  Media Queries
 ---------------------------------------------*/
+
+/* Screen sizes < 1200px --------------------- */
+
+/* ------------------------------------------
+Parkmath-specific live preview mod.
+---------------------------------------------*/
+
+.CodeMirror {
+  width: 60%;
+  margin-left: 5%;
+}
 
 .live-preview {
   display: none;
@@ -2485,10 +2496,11 @@ ins {
   bottom: 0;
   right: 0;
   margin: auto;
-  width: 30%;
+  width: 35%;
   height: 100vh;
   line-height: 100vh;
-  padding-right: 60px;
+  padding: 30px 60px 30px 0;
+  overflow-y: scroll;
 }
 
 .live-preview > * {
@@ -2508,7 +2520,7 @@ ins {
     .live-preview .problem .problem-part:before {
       content: counter(part,lower-alpha); }
       
-
+      
 .live-preview-source {
   background: rgba(200, 150, 255, .1);
   border-color: rgba(200, 150, 255, .1);
@@ -2517,13 +2529,11 @@ ins {
 }
 
 
+/* use the < 1200px (always), in order to free up 
+  the width for use with the live preview */
+/* Remove the media query, but leave everything inside it as is.
+@media all and (max-width:1240px) {*/
 
-/* ------------------------------------------
-  Media Queries
----------------------------------------------*/
-
-/* Screen sizes < 1200px --------------------- */
-@media all and (max-width:1240px) {
   .icon.branding {
     background-position:0 -115px;
     }
@@ -2658,7 +2668,9 @@ and (max-device-width:1024px) {
   #navigation {
     border-color:#D4D7D9;
     }
-}
+
+/*}*/
+/* end parkmath mod. */
 
 /* iPad (portrait) ----------- */
 @media only screen
