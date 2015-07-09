@@ -2519,6 +2519,11 @@ Parkmath-specific live preview mod.
     counter-increment: part; }
     .live-preview .problem .problem-part:before {
       content: counter(part,lower-alpha); }
+
+.live-preview figure,
+.live-preview img {
+  max-width: 100%;
+}
       
       
 .live-preview-source {

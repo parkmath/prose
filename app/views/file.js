@@ -1,3 +1,4 @@
+var path = require('path');
 var $ = require('jquery-browserify');
 var _ = require('underscore');
 var queue = require('queue-async');
@@ -313,7 +314,23 @@ module.exports = Backbone.View.extend({
     };
     
     this.livePreviewElement.show();
-    this.livePreviewElement.html(previewContent);
+
+    previewContent = $(previewContent);
+    previewContent.find('img').each(function (i, img) {
+      var filepath = $(img).attr('src')
+      if (util.absolutePath(path)) { return; }
+      filepath = filepath.replace('{{site.baseurl}}/', '/');
+      console.log('path: ', this.model.get('path')[0], filepath);
+      filepath = /^\//.test(filepath) ? filepath.slice(1) :
+        path.join(util.extractFilename(this.model.get('path'))[0], filepath);
+      var url = auth.site + '/' + this.repo.get('owner').login + '/' + this.repo.get('name') + '/blob/' +  this.branch + '/' + filepath + '?raw=true';
+      $(img).attr('src', url)
+    }.bind(this))
+
+    console.log(previewContent[0]);
+
+    this.livePreviewElement.html('');
+    previewContent.appendTo(this.livePreviewElement);
     window.MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.livePreviewElement[0]]);
   },
 
