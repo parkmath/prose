@@ -265,12 +265,13 @@ module.exports = Backbone.View.extend({
       }
     }
   },
-  
+
   /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       Parkmath-specific Preview Code.
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   **/
   livePreview: function(e) {
+    var problemPattern = /class\s*=\s*"\s*problem\s*"/
     this.livePreviewElement = this.livePreviewElement || $('.live-preview');
     if(this.livePreviewElement.length === 0) {
       console.warn("No live-preview element found.");
@@ -284,13 +285,20 @@ module.exports = Backbone.View.extend({
       // cursor's in the current preview.
     } else {
       if(current) { this.livePreviewRange.clear(); }
-    
+
+      // What problem are we on?
+      this.currentProblem = 0
+      for(var l = pos.line; l >= 0; l--) {
+        if (problemPattern.test(this.editor.getLine(l))) {
+          this.currentProblem++
+        }
+      }
+
       var enclosing = null, nextup = null;
       while(enclosing === null || !_.isEqual(pos, enclosing.open.start)) {
         var nextup = CodeMirror.findEnclosingTag(this.editor, pos);
-        console.log(nextup);
         if(!nextup) break;
-        else if(!nextup.open) { console.log(nextup); }
+        else if(!nextup.open) {  }
         else if(nextup.open.tag === 'section' || nextup.open.tag === 'article') break;
         else {
           pos = nextup.open.from;
@@ -307,15 +315,19 @@ module.exports = Backbone.View.extend({
         className: 'live-preview-source',
       });
     }
-    
+
     var previewContent = this.editor.getRange(current.from, current.to);
     if(util.trim(previewContent) === '') {
       this.livePreviewElement.hide();
     };
-    
+
     this.livePreviewElement.show();
 
     previewContent = $(previewContent);
+    if (this.currentProblem) {
+      var text = previewContent.is('.problem') ? 'Problem ' : 'After problem '
+      previewContent.prepend('<strong>' + text + this.currentProblem + '</strong><br>')
+    }
     previewContent.find('img').each(function (i, img) {
       var filepath = $(img).attr('src')
       if (util.absolutePath(path)) { return; }
@@ -327,11 +339,11 @@ module.exports = Backbone.View.extend({
       $(img).attr('src', url)
     }.bind(this))
 
-    console.log(previewContent[0]);
-
     this.livePreviewElement.html('');
-    previewContent.appendTo(this.livePreviewElement);
-    window.MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.livePreviewElement[0]]);
+    setTimeout(function () {
+      previewContent.appendTo(this.livePreviewElement);
+      window.MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.livePreviewElement[0]]);
+    }.bind(this), 100);
   },
 
   compilePreview: function(content) {
@@ -725,14 +737,14 @@ module.exports = Backbone.View.extend({
       metadata = this.model.get('metadata') || {};
       content = this.model.get('content') || '';
     }
-    
+
     // Run the liquid parsing.
     var parsedTemplate = Liquid.parse(this.compilePreview(content)).render({
       site: this.collection.config,
       post: metadata,
       page: metadata
     });
-    
+
     // If it's markdown, run it through marked; otherwise, leave it alone.
     if(this.model.get('markdown'))  parsedTemplate = marked(parsedTemplate);
 
