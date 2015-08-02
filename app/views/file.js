@@ -271,7 +271,7 @@ module.exports = Backbone.View.extend({
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   **/
   livePreview: function(e) {
-    var problemPattern = /class\s*=\s*"\s*problem\s*"/
+    var problemPattern = /class\s*=\s*"\s*problem(\s|")/
     this.livePreviewElement = this.livePreviewElement || $('.live-preview');
     if(this.livePreviewElement.length === 0) {
       console.warn("No live-preview element found.");
