@@ -82,6 +82,7 @@ module.exports = Backbone.Router.extend({
   // #example-user
   // #example-organization
   profile: function(login) {
+    if (!this.user) return this.start();
     if (this.view) this.view.remove();
 
     this.app.loader.start(t('loading.repos'));
@@ -136,6 +137,7 @@ module.exports = Backbone.Router.extend({
   // #example-user/example-repo
   // #example-user/example-repo/tree/example-branch/example-path
   repo: function(login, repoName, branch, path) {
+    if (!this.user) { return this.start() }
     if (this.view instanceof RepoView &&
       this.view.model.get('owner').login === login &&
       this.view.model.get('name') === repoName &&
