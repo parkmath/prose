@@ -94,6 +94,8 @@ module.exports = Backbone.Collection.extend({
         languages: config.languages
       }, config.prose);
 
+      this.config.url = this.config.siteurl;
+
       if (config.prose.ignore) {
         this.parseIgnore(config.prose.ignore);
       }

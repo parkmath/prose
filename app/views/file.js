@@ -739,11 +739,17 @@ module.exports = Backbone.View.extend({
     }
 
     // Run the liquid parsing.
-    var parsedTemplate = Liquid.parse(this.compilePreview(content)).render({
+    var compiled = this.compilePreview(content)
+    var liquidData = {
       site: this.collection.config,
       post: metadata,
       page: metadata
-    });
+    }
+    if (!liquidData.page.url) {
+      liquidData.page.url = window.location.href
+    }
+    console.log(liquidData)
+    var parsedTemplate = Liquid.parse(compiled).render(liquidData);
 
     // If it's markdown, run it through marked; otherwise, leave it alone.
     if(this.model.get('markdown'))  parsedTemplate = marked(parsedTemplate);
@@ -851,6 +857,17 @@ module.exports = Backbone.View.extend({
 
       document.write(content);
       document.close();
+
+      console.log('Reloading MathJax')
+      window.MathJax = null
+      var mj = 'http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML,http://parkmath.anandthakker.net/js/mathjax-config.js'
+      $.getScript(mj)
+      .done(function( script, textStatus ) {
+        console.log('MathJax', textStatus);
+      })
+      .fail(function( jqxhr, settings, exception ) {
+        console.error('Error loading MathJax')
+      });
     }).bind(this));
   },
 
