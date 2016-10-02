@@ -39,6 +39,7 @@
     "mocha-phantomjs": "~3.3.2",
     "phantomjs": "~1.9.7-4",
     "request": "~2.16.2",
+    "sinon": "^1.17.5",
     "sinon-chai": "^2.6.0",
     "uglify-js": "~2.2.5",
     "vinyl-source-stream": "^0.1.1"
