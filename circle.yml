@@ -13,4 +13,4 @@ deployment:
       - git init
       - git add .
       - git commit -m "CI deploy to gh-pages"
-      - git push --force --quiet "git@github.com:anandthakker/prose" parkmath:gh-pages
+      - git push --force --quiet "git@github.com:parkmath/prose" parkmath:gh-pages
