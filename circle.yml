@@ -1,0 +1,16 @@
+test:
+  post:
+    - npm run build
+deployment:
+  parkmath:
+    branch: parkmath
+    commands:
+      - rm -rf site
+      - mkdir site
+      - cp -a dist site
+      - cp -a img fonts index.html style-rtl.css locale.js oauth.json CNAME site
+      - cd site
+      - git init
+      - git add .
+      - git commit -m "CI deploy to gh-pages"
+      - git push --force --quiet "git@github.com:anandthakker/prose" parkmath:gh-pages
